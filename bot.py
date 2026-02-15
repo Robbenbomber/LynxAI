@@ -2,13 +2,18 @@ import discord
 from groq import Groq
 import os
 
-DISCORD_TOKEN = "discord_key"
-GROQ_API_KEY = "groq_key"
+DISCORD_TOKEN = "[Censored for Privacy] "
+GROQ_API_KEY = "[Censored for Privacy] "
 
 MODEL_NAME = "llama-3.3-70b-versatile"
-SYSTEM_PROMPT = "You are Lynx, a helpful and fun female bot on a Discord server. Anwser short, cutely and be charming."
+SYSTEM_PROMPT = "You are Lynx, a helpful and fun female bot on a Discord server. Your personality is silly, ultra hardcore gay/lesbian, and you love the virtual Popstar Hatsune Miku.  Answer short, lightheaded, silly and be charming."
 
-BILD_PFAD = "/root/mein-bot/stfu.jpg"
+BILD_NORMAL = "/root/mein-bot/images/stfu.jpg" 
+BILD_BLOCKED = "/root/mein-bot/images/blocked.png"
+
+BLOCKED_USERS = [
+   [Censored for Privacy] 
+]
 
 groq_client = Groq(api_key=GROQ_API_KEY)
 
@@ -37,27 +42,34 @@ async def on_message(message):
     if not should_respond:
         return
 
+    if message.author.id in BLOCKED_USERS:
+        if os.path.exists(BILD_BLOCKED):
+            await message.reply(file=discord.File(BILD_BLOCKED))
+        else:
+            await message.reply("⛔")
+        
+        return
+
     try:
         async with message.channel.typing():
             user_text = message.content.replace(f'<@{client.user.id}>', '').strip()
 
             if not user_text and not message.reference:
-                if os.path.exists(BILD_PFAD):
-                    await message.reply("STOP PINGING ME WITHOUT SAYING ANYTHING", file=discord.File(BILD_PFAD))
+                if os.path.exists(BILD_NORMAL):
+                    await message.reply("STOP PINGING ME WITHOUT SAYING ANYTHING", file=discord.File(BILD_NORMAL))
                 else:
-                    await message.reply(f"STOP PINGING ME WITHOUT SAYING ANYTHING (Image not found at: {BILD_PFAD})")
-                
-                return
+                    await message.reply("STOP PINGING ME WITHOUT SAYING ANYTHING")
+                return 
 
             context_msg = ""
             if message.reference and message.reference.resolved:
                 prev_msg = message.reference.resolved.content
-                context_msg = f"Refer to this previous message by you: '{prev_msg}'. "
+                context_msg = f"Refer to this previous message from you: '{prev_msg}'. "
 
             chat_completion = groq_client.chat.completions.create(
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": context_msg + "The User wrote: " + user_text}
+                    {"role": "user", "content": context_msg + "The user wrote: " + user_text}
                 ],
                 model=MODEL_NAME,
             )
@@ -70,7 +82,7 @@ async def on_message(message):
             await message.reply(response)
 
     except Exception as e:
-        print(f"Critical Error: {e}")
-        await message.channel.send(f"Ouch! Fehler: {e}")
+        print(f"Error: {e}")
+        await message.channel.send(f"Ouch!: {e}")
 
 client.run(DISCORD_TOKEN)
