@@ -125,7 +125,6 @@ async def on_message(message):
             if new_score != score:
                 beziehungen[user_id] = new_score
                 speichere_beziehungen(beziehungen)
-                # Optional: Debug-Ausgabe in der Konsole
                 print(f"Relationship with {message.author.name} changed: {score} -> {new_score}")
 
             if len(final_response) > 2000:
